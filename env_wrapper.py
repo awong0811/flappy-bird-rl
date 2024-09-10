@@ -9,10 +9,10 @@ class EnvWrapper(gym.Wrapper):
     def __init__(
         self,
         env:gym.Env,
-        skip_frames:int=1,
-        stack_frames:int=4,
-        initial_no_op:int=0,
-        do_nothing_action:int=0,
+        skip_frames:int=config.ENVWRAPPER['skip_frames'],
+        stack_frames:int=config.ENVWRAPPER['stack_frames'],
+        initial_no_op:int=config.ENVWRAPPER['intial_no_op'],
+        do_nothing_action:int=config.ENVWRAPPER['do_nothing'],
         **kwargs
     ):
         """
@@ -55,10 +55,6 @@ class EnvWrapper(gym.Wrapper):
         return self.stacked_state, info
     
     def step(self, action):
-        '''
-        Instead of reading in state frame by frame, we'll treat each state as a collection of frames.
-        This allows us to not just read in the position of the bird but also its velocity.
-        '''
         reward = 0
         for _ in range(self.skip_frames):
             s, r, terminated, truncated, info = self.env.step(action)
