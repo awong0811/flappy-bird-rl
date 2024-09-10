@@ -71,8 +71,8 @@ class DQN:
         
     def train(self, n_episodes: int=1000, validate_every: int=100, n_validation_episodes: int=10,
               n_test_episodes: int=10, save_every: int=100):
-        train_reward_history, train_loss_history = np.array([]), np.array([])
-        val_reward_history, val_loss_history = np.array([]), np.array([])
+        train_reward_history, train_loss_history = [], []
+        val_reward_history, val_std_history = [], []
         best_val_reward = -np.inf
 
         # Create directories for the saved weights and run histories
@@ -80,6 +80,50 @@ class DQN:
         os.makedirs(self.save_path_history, exist_ok=True)
 
         for episode in range(n_episodes):
+            # Reset the environment
             state,_ = self.env.reset()
             done = False
-            truncated = 
+            truncated = False
+            total_reward = 0
+            i = 0
+            loss = 0
+            start_time = time.time()
+            epsilon = self.epsilon_decay()
+
+            while (not done) and (not truncated):
+                # While the game is not over, take an action and add that experience to the replay buffer
+                action = self._sample_action(state, epsilon)
+                next_state, reward, done, truncated, _ = self.env.step(action)
+                self.replay_buffer.add(state, action, reward, next_state, done)
+                total_reward += reward
+                state = next_state
+
+                # Optimize the model
+                not_warm_starting, l = self._optimize_model()
+                if not_warm_starting:
+                    loss += l
+                    epsilon = self.epsilon_decay()
+                    i += 1
+            if i!=0:
+                # The optimization process has already started
+                print(f"Episode: {episode} Time: {time.time()-start_time} Total Reward: {total_reward} Avg_Loss: {loss/i}")
+                train_reward_history.append(total_reward)
+                train_loss_history.append(loss/i)
+            if episode%validate_every == validate_every-1:
+                mean_reward, std_reward = self.validate(n_validation_episodes)
+                print(f"Validation Mean Reward: {mean_reward} Validation Std Reward: {std_reward}")
+                val_reward_history.append(mean_reward)
+                val_std_history.append(std_reward)
+                if mean_reward > best_val_reward:
+                    best_val_reward = mean_reward
+                    self._save('best')
+            if episode%save_every == save_every-1:
+                self._save(str(episode))
+        
+        self._save('final')
+        self.load_model('best')
+        mean_reward, std_reward = self.validate(n_test_episodes)
+        print(f"Test Mean Reward: {mean_reward} Test Std Reward: {std_reward}")
+        return train_reward_history, train_loss_history, val_reward_history, val_std_history
+    
+    
