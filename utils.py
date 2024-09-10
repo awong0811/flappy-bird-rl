@@ -48,15 +48,25 @@ def plotgraphs(train_reward_history, train_loss_history, val_reward_history, val
     plt.ylabel('Validation STD')
 
 # Training Functions
-class exponential_decay:
-    def __init__(self, epsilon:float, half_life:int, min_epsilon:float):
-        self.epsilon = epsilon
-        self.decay_rate = 0.5 ** (1 / half_life)
-        self.epsilon = self.epsilon/self.decay_rate
-        self.min_epsilon = min_epsilon
+# class exponential_decay:
+#     def __init__(self, epsilon:float, half_life:int, min_epsilon:float):
+#         self.epsilon = epsilon
+#         self.decay_rate = 0.5 ** (1 / half_life)
+#         self.epsilon = self.epsilon/self.decay_rate
+#         self.min_epsilon = min_epsilon
         
+#     def __call__(self):
+#         self.epsilon = max(self.epsilon * self.decay_rate, self.min_epsilon)
+#         return self.epsilon
+class exponential_decay:
+    def __init__(self, initial_epsilon:float, num_updates:int, final_epsilon:float):
+        self.epsilon = initial_epsilon
+        self.decay_rate = (final_epsilon/initial_epsilon)**(1/num_updates)
+        self.epsilon = self.epsilon/self.decay_rate
+        self.final_epsilon = final_epsilon
+
     def __call__(self):
-        self.epsilon = max(self.epsilon * self.decay_rate, self.min_epsilon)
+        self.epsilon = max(self.epsilon * self.decay_rate, self.final_epsilon)
         return self.epsilon
 
 class linear_decay:

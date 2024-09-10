@@ -3,6 +3,7 @@ channels:
   - defaults
 dependencies:
   - python=3.10.0
+  - pip
   - pip:
     - flappy-bird-gymnasium
     - gymnasium

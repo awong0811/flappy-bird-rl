@@ -249,3 +249,79 @@ class DQN:
             return total_reward, frames
         return total_reward
 
+class HardUpdateDQN(DQN):
+    def __init__(self,env,model,model_kwargs:dict = {},
+                 update_freq:int = 5,*args,**kwargs):
+        super().__init__(env,model,model_kwargs, *args,**kwargs)
+        self.target_model = model(self.observation_space, self.env.action_space.n, **model_kwargs).to(self.device)
+        self.target_model.load_state_dict(self.model.state_dict())
+        self.update_freq = update_freq
+    
+    def _optimize_model(self):
+        """Optimizes the model
+
+        Returns:
+            bool: whether we have enough samples to optimize the model, which we define as having at least 10*batch_size samples
+            float: the loss, if we do not have enough samples, we return 0
+        """
+        enough_samples = len(self.replay_buffer.buffer)>=10*self.batch_size
+        loss = 0.0
+        if not enough_samples:
+            return enough_samples, loss
+        else:
+            self.optimizer.zero_grad()
+            states, actions, rewards, next_states, dones = self.replay_buffer.sample(batch_size=self.batch_size,
+                                                                                     device=self.device)
+            
+            # Calculate reward at current state with the apparent action taken
+            # Q(state, action)
+            q = torch.empty(self.batch_size).to(self.device)
+            outputs = self.model(states) # batch x actions
+            for i in range(self.batch_size):
+                q[i] = outputs[i][actions[i]]
+            
+            # Calculate sum of expected rewards to go 
+            # Q*(next state, action') where action' follows the argmax policy
+            # Q* is the target network
+            self._update_model()
+            rewards_to_go,_ = torch.max(self.target_model(next_states), dim=1)
+            targets = rewards + self.gamma*(1-dones.float())*rewards_to_go
+            targets = targets.detach()
+            loss = self.loss_fn(q, targets)
+            loss.backward()
+            self.optimizer.step()
+            torch.cuda.empty_cache()
+            return enough_samples, loss.item()
+    
+    def _update_model(self):
+        self.i_update += 1
+        if self.i_update % self.update_freq == 0:
+            self.target_model.load_state_dict(self.model.state_dict())
+
+    def _save(self, suffix:str='', *args):
+        torch.save(self.model.state_dict(), os.path.join(self.save))
+        torch.save(self.target_model.state_dict(), os.path.join(self.save_path, f'target_model_{suffix}.pt'))
+        if suffix=='final':
+            train_reward_history, train_loss_history, val_reward_history, val_std_history = args
+            np.savez(os.path.join(self.save_path, 'run_info.npz'), train_reward_history=train_reward_history, 
+                     train_loss_history=train_loss_history, val_reward_history=val_reward_history, 
+                     val_std_history=val_std_history)
+
+    def load_model(self, suffix:str=''):
+        self.model.load_state_dict(torch.load(os.path.join(self.save_path, f'model_{suffix}.pt')))
+        self.target_model.load_state_dict(torch.load(os.path.join(self.save_path,f'target_model_{suffix}.pt')))
+
+class SoftUpdateDQN(HardUpdateDQN):
+    def __init__(self, env, model, model_kwargs:dict={},
+                 tau:float=0.01,*args,**kwargs):
+        super().__init__(env, model, model_kwargs, *args, **kwargs)
+        self.tau = tau
+
+    def _update_model(self):
+        """Soft updates the target model using Polyak Averaging"""
+        with torch.no_grad():
+            for target_param, param in zip(self.target_model.parameters(), self.model.parameters()):
+                target_param.data.copy_(self.tau * param.data + (1.0-self.tau) * target_param.data)
+                del param
+                del target_param
+            torch.cuda.empty_cache()
