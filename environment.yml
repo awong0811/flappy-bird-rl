@@ -1,6 +1,8 @@
 name: flappy
 channels:
+  - defaults
 dependencies:
+  - python=3.10.0
   - pip:
     - flappy-bird-gymnasium
     - gymnasium

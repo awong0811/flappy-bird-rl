@@ -126,4 +126,59 @@ class DQN:
         print(f"Test Mean Reward: {mean_reward} Test Std Reward: {std_reward}")
         return train_reward_history, train_loss_history, val_reward_history, val_std_history
     
+    def _optimize_model(self):
+        """Optimizes the model
+
+        Returns:
+            bool: whether we have enough samples to optimize the model, which we define as having at least 10*batch_size samples
+            float: the loss, if we do not have enough samples, we return 0
+        """
+        enough_samples = len(self.replay_buffer.buffer)>=10*self.batch_size
+        loss = 0.0
+        if not enough_samples:
+            return enough_samples, loss
+        else:
+            self.optimizer.zero_grad()
+            states, actions, rewards, next_states, dones = self.replay_buffer.sample(batch_size=self.batch_size,
+                                                                                     device=self.device)
+            
+            # Calculate reward at current state with the apparent action taken
+            # Q(state, action)
+            q = torch.empty(self.batch_size).to(self.device)
+            outputs = self.model(states) # batch x actions
+            for i in range(self.batch_size):
+                q[i] = outputs[i][actions[i]]
+            
+            # Calculate sum of expected rewards to go 
+            # Q(next state, action') where action' follows the argmax policy
+            rewards_to_go = torch.max(self.model(next_states), dim=1)
+            targets = rewards + self.gamma*(1-dones.float())*rewards_to_go
+            targets = targets.detach()
+            loss = self.loss_fn(q, targets)
+            loss.backward()
+            self.optimizer.step()
+            torch.cuda.empty_cache()
+            return enough_samples, loss.item()
+        
+    def _sample_action(self, state:np.ndarray, epsilon:float=0.1)->int:
+        """Samples an action from the model
+
+        Args:
+            state (np.ndarray): the state, of shape [n_c,h,w]
+            epsilon (float, optional): the epsilon for epsilon greedy. Defaults to 0.1.
+
+        Returns:
+            int: the index of the action to take
+        """
+        state = torch.from_numpy(state).to(self.device).float()
+        state = state.unsqueeze(0)
+        temp = random.uniform(0,1)
+        if temp<epsilon:
+            action = int(random.choice(np.arange(self.env.action_space.n)))
+        else:
+            with torch.no_grad():
+                action = torch.argmax(self.model(state).detach(), dim=1).item()
+        return action
     
+    
+
