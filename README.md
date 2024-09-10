@@ -1,6 +1,7 @@
 # flAIppy bird: Reinforcement Learning (DQN) for Flappy Bird
 OS: Windows 11 <br>
 Python Version: 3.10.0
+Setup: Make sure to install the flappy bird environment as shown below before installing requirements.txt.
 
 This project was inspired by my ECE 239AS project. This project serves as a further exploration of DQN; I figured I could try DQN on some other games to familiarize myself with the start-to-finish process of implementing DQN, from the environment wrapper to the replay buffer to the entire training function.
 
