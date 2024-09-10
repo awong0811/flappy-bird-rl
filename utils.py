@@ -8,7 +8,7 @@ import config
 def preprocess(img):
     img = img[0:400,:,:]
     img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) / 255.0
-    dim = config.DATA['resolution']
+    dim = config.ENVWRAPPER['resolution']
     img = cv2.resize(img, (dim,dim))
     return img
 

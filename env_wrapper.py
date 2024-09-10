@@ -11,7 +11,7 @@ class EnvWrapper(gym.Wrapper):
         env:gym.Env,
         skip_frames:int=config.ENVWRAPPER['skip_frames'],
         stack_frames:int=config.ENVWRAPPER['stack_frames'],
-        initial_no_op:int=config.ENVWRAPPER['intial_no_op'],
+        initial_no_op:int=config.ENVWRAPPER['initial_no_op'],
         do_nothing_action:int=config.ENVWRAPPER['do_nothing'],
         **kwargs
     ):
@@ -33,7 +33,7 @@ class EnvWrapper(gym.Wrapper):
         self.observation_space = gym.spaces.Box(
             low=0,
             high=1,
-            shape=(stack_frames, config.DATA['resolution'], config.DATA['resolution']),
+            shape=(stack_frames, config.ENVWRAPPER['resolution'], config.ENVWRAPPER['resolution']),
             dtype=np.float32
         )
         self.do_nothing_action = do_nothing_action

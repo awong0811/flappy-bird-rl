@@ -3,12 +3,14 @@ ENVWRAPPER = {
     'stack_frames': 4,
     'initial_no_op': 0,
     'do_nothing': 0,
+    'resolution': 84,
 }
 
-DATA = {
-    'resolution': 84,
+DQN = {
     'batch_size': 32,
+    'buffer_size': 10000,
 }
+
 
 ''' Example config.py
 # Model-related configurations
