@@ -3,9 +3,13 @@ import matplotlib.pyplot as plt
 import matplotlib.animation
 import os
 import numpy as np
+import config
 
 def preprocess(img):
+    img = img[0:400,:,:]
     img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) / 255.0
+    dim = config.DATA['resolution']
+    img = cv2.resize(img, (dim,dim))
     return img
 
 def animate(frames):
