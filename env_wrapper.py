@@ -10,12 +10,11 @@ class EnvWrapper(gym.Wrapper):
         env:gym.Env,
         skip_frames:int=4,
         stack_frames:int=4,
-        initial_no_op:int=50,
+        initial_no_op:int=0,
         do_nothing_action:int=0,
         **kwargs
     ):
-        """the environment wrapper for CarRacing-v2
-
+        """
         Args:
             env (gym.Env): the original environment
             skip_frames (int, optional): the number of frames to skip, in other words we will
@@ -33,7 +32,7 @@ class EnvWrapper(gym.Wrapper):
         self.observation_space = gym.spaces.Box(
             low=0,
             high=1,
-            shape=(stack_frames, 84, 84),
+            shape=(stack_frames, 512, 288),
             dtype=np.float32
         )
         self.do_nothing_action = do_nothing_action

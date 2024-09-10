@@ -1,3 +1,7 @@
 gymnasium
 numpy
 pygame
+jupyter
+tensorflow
+torch
+opencv-python
