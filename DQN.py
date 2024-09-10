@@ -148,7 +148,7 @@ class DQN:
             
             # Calculate sum of expected rewards to go 
             # Q(next state, action') where action' follows the argmax policy
-            rewards_to_go = torch.max(self.model(next_states), dim=1)
+            rewards_to_go,_ = torch.max(self.model(next_states), dim=1)
             targets = rewards + self.gamma*(1-dones.float())*rewards_to_go
             targets = targets.detach()
             loss = self.loss_fn(q, targets)

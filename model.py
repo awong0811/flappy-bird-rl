@@ -23,7 +23,7 @@ class MLP(nn.Module):
 
     def forward(self, x:torch.Tensor)->torch.Tensor:
         out = self.linear1(x)
-        out = self.non_linear(out)
+        out = self.relu(out)
         out = self.output(out)
         return out
     
