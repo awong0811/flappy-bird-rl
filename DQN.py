@@ -191,7 +191,6 @@ class DQN:
         done = False
         truncated = False
         total_reward = 0
-        i = 0
         while not done and not truncated:
             action = self._sample_action(state, 0)
             next_state, reward, done, truncated, _ = self.env.step(action)
@@ -215,4 +214,38 @@ class DQN:
             np.savez(os.path.join(self.save_path, 'run_info.npz'), train_reward_history=train_reward_history, 
                      train_loss_history=train_loss_history, val_reward_history=val_reward_history, 
                      val_std_history=val_std_history)
+            
+    def play_episode(self, epsilon:float = 0, return_frames:bool=True, seed:int=None):
+        """Plays an episode of the environment
+
+        Args:
+            epsilon (float, optional): the epsilon for epsilon greedy. Defaults to 0.
+            return_frames (bool, optional): whether we should return frames. Defaults to True.
+            seed (int, optional): the seed for the environment. Defaults to None.
+
+        Returns:
+            if return frames is True, returns the total reward and the frames
+            if return frames is False, returns the total reward
+        """
+        if seed is not None:
+            state,_ = self.env.reset(seed=seed)
+        else:
+            state,_ = self.env.reset()
+        
+        done = False
+        total_reward = 0
+        if return_frames:
+            frames = []
+        with torch.no_grad():
+            while not done:
+                action = self._sample_action(state, epsilon)
+                next_state, reward, terminated, truncated, _ = self.env.step(action)
+                total_reward += reward
+                done = terminated or truncated
+                if return_frames:
+                    frames.append(self.env.render())
+                state = next_state
+        if return_frames:
+            return total_reward, frames
+        return total_reward
 
