@@ -11,4 +11,6 @@ import time
 from utils import exponential_decay
 import typing
 
-### REMEMBER TO RESIZE EACH FRAME TO 84x84
+class DQN:
+    def __init__(self, env:typing.Union[gym.Env,gym.Wrapper],
+                 )

@@ -1,0 +1,12 @@
+name: flappy
+channels:
+dependencies:
+  - pip:
+    - flappy-bird-gymnasium
+    - gymnasium
+    - numpy
+    - pygame
+    - jupyter
+    - tensorflow
+    - torch
+    - opencv-python
