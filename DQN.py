@@ -23,8 +23,7 @@ class DQN:
                  device: str='cpu',
                  seed: int=42,
                  epsilon_scheduler=exponential_decay(1,700,0.1),
-                 save_path_weights:str=None,
-                 save_path_history:str=None):
+                 save_path:str=None):
         """Initializes the DQN algorithm
 
         Args:
@@ -59,8 +58,7 @@ class DQN:
         self.i_update = 0
         self.device = device
         self.epsilon_decay = epsilon_scheduler
-        self.save_path_weights = save_path_weights if save_path_weights is not None else "./"
-        self.save_path_history = save_path_history if save_path_history is not None else "./"
+        self.save_path = save_path if save_path is not None else "./"
 
         if loss_fn == 'smooth_l1_loss':
             self.loss_fn = F.smooth_l1_loss
@@ -76,8 +74,7 @@ class DQN:
         best_val_reward = -np.inf
 
         # Create directories for the saved weights and run histories
-        os.makedirs(self.save_path_weights, exist_ok=True)
-        os.makedirs(self.save_path_history, exist_ok=True)
+        os.makedirs(self.save_path, exist_ok=True)
 
         for episode in range(n_episodes):
             # Reset the environment
@@ -120,7 +117,7 @@ class DQN:
             if episode%save_every == save_every-1:
                 self._save(str(episode))
         
-        self._save('final')
+        self._save('final', train_reward_history, train_loss_history, val_reward_history, val_std_history)
         self.load_model('best')
         mean_reward, std_reward = self.validate(n_test_episodes)
         print(f"Test Mean Reward: {mean_reward} Test Std Reward: {std_reward}")
@@ -180,5 +177,42 @@ class DQN:
                 action = torch.argmax(self.model(state).detach(), dim=1).item()
         return action
     
+    def _set_seed(self, seed:int):
+        random.seed(seed)
+        np.random.seed(seed)
+        self.seed = seed
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+        gym.utils.seeding.np_random(seed)
+
+    def _validate_once(self):
+        state,_ = self.env.reset()
+        done = False
+        truncated = False
+        total_reward = 0
+        i = 0
+        while not done and not truncated:
+            action = self._sample_action(state, 0)
+            next_state, reward, done, truncated, _ = self.env.step(action)
+            total_reward += reward
+            state = next_state
+        return total_reward
     
+    def validate(self, n_episodes:int=10):
+        rewards_per_episode = []
+        for _ in range(n_episodes):
+            rewards_per_episode.append(self._validate_once())
+        return np.mean(rewards_per_episode), np.std(rewards_per_episode)
+    
+    def load_model(self, suffix:str=''):
+        self.model.load_state_dict(torch.load(os.path.join(self.save_path, f'model_{suffix}.pt')))
+
+    def _save(self, suffix:str='', *args):
+        torch.save(self.model.state_dict(), os.path.join(self.save_path, f'model_{suffix}.pt'))
+        if suffix=='final':
+            train_reward_history, train_loss_history, val_reward_history, val_std_history = args
+            np.savez(os.path.join(self.save_path, 'run_info.npz'), train_reward_history=train_reward_history, 
+                     train_loss_history=train_loss_history, val_reward_history=val_reward_history, 
+                     val_std_history=val_std_history)
 
