@@ -299,7 +299,7 @@ class HardUpdateDQN(DQN):
             self.target_model.load_state_dict(self.model.state_dict())
 
     def _save(self, suffix:str='', *args):
-        torch.save(self.model.state_dict(), os.path.join(self.save))
+        torch.save(self.model.state_dict(), os.path.join(self.save_path, f'model_{suffix}.pt'))
         torch.save(self.target_model.state_dict(), os.path.join(self.save_path, f'target_model_{suffix}.pt'))
         if suffix=='final':
             train_reward_history, train_loss_history, val_reward_history, val_std_history = args
