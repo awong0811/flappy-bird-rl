@@ -16,7 +16,25 @@ import random
 from urllib.request import urlopen
 import re
 import sys
+import platform
+import subprocess
 ###
+
+def check_internet_connection(host='google.com'):
+    if platform.system()=='Windows':
+        cmd = ['ping','-n','1',host]
+    else:
+        cmd = ['ping', '-c', '1', host]
+
+    try:
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode==0:
+            if 'Reply' in result.stdout or 'bytes from' in result.stdout:
+                return True
+        return False
+    except Exception as e:
+        print(f"An error occured: {e}")
+        return False
 
 def get_ascii(text, font='graffiti'):
     url = r"http://www.network-science.de/ascii/ascii.php?TEXT=" + text + r"&x=32&y=13&FONT=" + font + r"&RICH=no&FORM=left&STRE=no&WIDT=80"
@@ -137,10 +155,11 @@ if __name__ == "__main__":
                 cv2.imshow('Frame', frame)
                 if cv2.waitKey(30) & 0xFF==27:
                     cv2.destroyAllWindows()
-                    print(get_ascii("mission"))
-                    print(get_ascii("passed!"))
-                    print(get_ascii("respect+"))
-                    print(f"Infinite Run Summary:\nYou killed Agent Flappy {death_count} times!\nAverage Total Reward: {(running_total_reward/death_count):.4f}")
+                    if check_internet_connection():
+                        print(get_ascii("mission"))
+                        print(get_ascii("passed!"))
+                        print(get_ascii("respect+"))
+                    print(f"Infinite Run Summary:\nYou killed Agent Flappy {death_count} times!\nAverage Reward per Run: {(running_total_reward/death_count):.4f}")
                     exit()
             running_total_reward+=total_reward
             death_count+=1
