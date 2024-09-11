@@ -1,6 +1,6 @@
 ENVWRAPPER = {
     'skip_frames': 1,
-    'stack_frames': 4,
+    'stack_frames': 5,
     'initial_no_op': 0,
     'do_nothing': 0,
     'resolution': 84,
