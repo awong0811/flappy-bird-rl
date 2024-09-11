@@ -1,6 +1,6 @@
 ENVWRAPPER = {
     'skip_frames': 1,
-    'stack_frames': 5,
+    'stack_frames': 4,
     'initial_no_op': 0,
     'do_nothing': 0,
     'resolution': 84,
@@ -8,7 +8,7 @@ ENVWRAPPER = {
 
 DQN = {
     'batch_size': 32,
-    'buffer_size': 10000,
+    'buffer_size': 20000,
 }
 
 

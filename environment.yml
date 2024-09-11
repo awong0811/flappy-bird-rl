@@ -13,3 +13,4 @@ dependencies:
     - tensorflow
     - torch
     - opencv-python
+    - tqdm
