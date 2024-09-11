@@ -12,6 +12,27 @@ import argparse
 from tqdm import tqdm
 import random
 
+### For ASCII art
+from urllib.request import urlopen
+import re
+import sys
+###
+
+def get_ascii(text, font='graffiti'):
+    url = r"http://www.network-science.de/ascii/ascii.php?TEXT=" + text + r"&x=32&y=13&FONT=" + font + r"&RICH=no&FORM=left&STRE=no&WIDT=80"
+    
+    f = urlopen(url)
+    html = f.read().decode('utf-8')
+    f.close()
+
+    matched = re.search(r'<PRE>.*?</PRE>.*?<PRE>(.*?)</PRE>', html, re.DOTALL)
+    if matched:
+        ascii = matched.group(1)
+        ascii=ascii.replace('&gt;', '>').replace('&lt;', '<')
+        return ascii
+    else:
+        return None
+
 def replace_transparent_pixels(image_path, bgr_color):
     # Read the image with the alpha channel
     image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
@@ -86,7 +107,7 @@ if __name__ == "__main__":
                         device = 'cpu', seed=seed)
     evalDQN.model.load_state_dict(torch.load(ckpt, weights_only=True))
     
-    print('Playing first episode...')
+    print('Chillax bro, Agent Flappy is warming up...')
     _,_ = evalDQN.play_episode(0,True,initial_episode_seed)
     death_count = 0
     death_count_image_path = r'.\imgs\flappy_bird_death_counter.png'
@@ -95,9 +116,10 @@ if __name__ == "__main__":
     logo_W, logo_H = death_count_image.shape[1], death_count_image.shape[0]
     new_logo_W, new_logo_H = int(logo_W/6), int(logo_H/6)
     death_count_image = cv2.resize(death_count_image, (new_logo_W, new_logo_H))
+    running_total_reward = 0
     while True:
         random_seed = random.sample(range(min_seed, max_seed), 1)[0]
-        print('Reset seed: ', random_seed)
+        print('Respawn seed: ', random_seed)
         state,_ = evalDQN.env.reset(seed=random_seed)
         done = False
         total_reward = 0
@@ -114,9 +136,15 @@ if __name__ == "__main__":
                 annotate_frame(frame,death_count_image,total_reward)
                 cv2.imshow('Frame', frame)
                 if cv2.waitKey(30) & 0xFF==27:
+                    cv2.destroyAllWindows()
+                    print(get_ascii("mission"))
+                    print(get_ascii("passed!"))
+                    print(get_ascii("respect+"))
+                    print(f"Infinite Run Summary:\nYou killed Agent Flappy {death_count} times!\nAverage Total Reward: {(running_total_reward/death_count):.4f}")
                     exit()
+            running_total_reward+=total_reward
             death_count+=1
             if death_count==1:
-                print(f"You died 1 time!")
+                print(f"Agent Flappy died 1 time!")
             else:
-                print(f"You died {death_count} times!")
+                print(f"Agent Flappy has died {death_count} times!")
