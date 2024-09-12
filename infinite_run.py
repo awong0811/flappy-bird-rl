@@ -37,7 +37,7 @@ def check_internet_connection(host='google.com'):
         return False
 
 def get_ascii(text, font='graffiti'):
-    url = r"http://www.network-science.de/ascii/ascii.php?TEXT=" + text + r"&x=32&y=13&FONT=" + font + r"&RICH=no&FORM=left&STRE=no&WIDT=80"
+    url = r"http://www.network-science.de/ascii/ascii.php?TEXT=" + text + r"&x=32&y=13&FONT=" + font + r"&RICH=no&FORM=left&STRE=no&WIDT=150"
     
     f = urlopen(url)
     html = f.read().decode('utf-8')
@@ -68,13 +68,13 @@ def replace_transparent_pixels(image_path, bgr_color):
         # Replace transparent pixels with the BGR color
         image[transparent_mask] = np.concatenate([bgr_color_array[transparent_mask], np.zeros((np.sum(transparent_mask), 1), dtype=np.uint8)], axis=1)
         # Save the output image
-        return image[20:500,:,:3]
+        return image[:,:,:3]
     else:
         raise ValueError("The image does not have an alpha channel.")
 
 def annotate_frame(frame, logo, total_reward):
     H,W,_ = logo.shape
-    frame[(-5-H):-5,15:(15+W),:] = logo
+    frame[(-15-H):-15,15:(15+W),:] = logo
     cv2.putText(frame, f'Seed: {random_seed}', org=(3, 25), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(0,0,255), thickness=2)
     cv2.putText(frame, f'Total Reward: {total_reward:.1f}', org=(3, 50), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255,255,0), thickness=2)
     cv2.putText(frame, f'{death_count}', org=(25+W,frame.shape[0]-20), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=2, color=(0,0,0),thickness=4)
@@ -96,10 +96,29 @@ if __name__ == "__main__":
         default='DQN',
         help = "Select from DQN, Hard Update DQN, and Soft Update DQN"
     )
+    parser.add_argument(
+        '--rad',
+        action='store_true',
+        help = "Use a cooler icon."
+    )
+    parser.add_argument(
+        '-w', '--write',
+        type=str,
+        help = "Specify this option to record and write to an output path."
+    )
     args = parser.parse_args()
 
     mode = args.mode
     ckpt = args.ckpt
+    rad = args.rad
+    write = args.write
+    if write:
+        filename = write
+        fps = 30.0
+        res = (288,512)
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out = cv2.VideoWriter(filename, fourcc, fps, res)
+
     min_seed = 0
     max_seed = 100000
     seed = random.sample(range(min_seed, max_seed), 1)[0]
@@ -128,7 +147,7 @@ if __name__ == "__main__":
     print('Chillax bro, Agent Flappy is warming up...')
     _,_ = evalDQN.play_episode(0,True,initial_episode_seed)
     death_count = 0
-    death_count_image_path = r'.\imgs\flappy_bird_death_counter.png'
+    death_count_image_path = r'.\imgs\flappy_bird_rad_icon.png' if rad else r'.\imgs\flappy_bird_icon.png'
     bg_rgb = (149,216,222)
     death_count_image = replace_transparent_pixels(death_count_image_path, bg_rgb)
     logo_W, logo_H = death_count_image.shape[1], death_count_image.shape[0]
@@ -153,13 +172,20 @@ if __name__ == "__main__":
                 # frame[-55:-30,5:30,:] = death_count_image
                 annotate_frame(frame,death_count_image,total_reward)
                 cv2.imshow('Frame', frame)
+                if write:
+                    out.write(frame)
                 if cv2.waitKey(30) & 0xFF==27:
                     cv2.destroyAllWindows()
                     if check_internet_connection():
-                        print(get_ascii("mission"))
-                        print(get_ascii("passed!"))
-                        print(get_ascii("respect+"))
-                    print(f"Infinite Run Summary:\nYou killed Agent Flappy {death_count} times!\nAverage Reward per Run: {(running_total_reward/death_count):.4f}")
+                        print(get_ascii("mission%20passed!"))
+                        print(get_ascii("respect%2B"))
+                    if death_count!=0: # Avoid division by 0
+                        if death_count==1:
+                            print(f"Infinite Run Summary:\nYou killed Agent Flappy {death_count} time!\nAverage Reward per Run: {(running_total_reward/death_count):.4f}")
+                        else:
+                            print(f"Infinite Run Summary:\nYou killed Agent Flappy {death_count} times!\nAverage Reward per Run: {(running_total_reward/death_count):.4f}")
+                    else:
+                        print(f"Infinite Run Summary:\nYou killed Agent Flappy 0 times!")
                     exit()
             running_total_reward+=total_reward
             death_count+=1
