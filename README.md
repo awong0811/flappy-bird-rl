@@ -14,10 +14,11 @@ Here are the results for a non-optimized vanilla DQN agent after approximately 3
 <p align="center">
   <img align="center" 
        src="https://github.com/awong0811/flappy-bird-rl/blob/main/imgs/flappy_bird_dqn_3000.gif?raw=true" 
-       width="200"/>
+       width="200"/> <br>
+  [Youtube](https://youtu.be/zXcjuuonosw)
 </p>
 
-[Youtube](https://youtu.be/zXcjuuonosw)
+<!-- [Youtube](https://youtu.be/zXcjuuonosw) -->
 
 Shoutout to [@Talendar](https://github.com/Talendar) for building the [original environment](https://github.com/Talendar/flappy-bird-gym) and [@markub3327](https://github.com/markub3327) for providing the [updated version](https://github.com/markub3327/flappy-bird-gymnasium). The forked README continues below.
 
