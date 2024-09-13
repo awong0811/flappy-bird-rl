@@ -15,7 +15,7 @@ Here are the results for a non-optimized vanilla DQN agent after approximately 3
   <img align="center" 
        src="https://github.com/awong0811/flappy-bird-rl/blob/main/imgs/flappy_bird_dqn_3000.gif?raw=true" 
        width="200"/> <br>
-  [Youtube](https://youtu.be/zXcjuuonosw)
+  <a href="https://youtu.be/zXcjuuonosw" target="_blank">Youtube</a>
 </p>
 
 <!-- [Youtube](https://youtu.be/zXcjuuonosw) -->
