@@ -5,8 +5,21 @@ Setup: Make sure to install the flappy bird environment as shown below before in
 
 This project was inspired by my ECE 239AS project. This project serves as a further exploration of DQN; I figured I could try DQN on some other games to familiarize myself with the start-to-finish process of implementing DQN, from the environment wrapper to the replay buffer to the entire training function. If things go well, I might consider an RL project for my capstone!
 
+The idea of applying DQN to Flappy Bird is not new. There have been very successful [projects](https://www.youtube.com/watch?v=THhUXIhjkCM&t=302s) in the past, but I noticed most of them used simpler environments (i.e. removing the background, bird doesn't rotate). Thus, this not only was a great learning experience for me but provided a challenge to see if I could reproduce the same results in a newer version of Flappy Bird that we are familiar with. I'll update the README and provide more thorough documentation of the design process (mostly for my own educational benefit) as I go.
 
-Shoutout to the Talendar for building the original environment and markub3327 for providing the updated version. The forked README continues below.
+Here are the results for a non-optimized vanilla DQN agent after approximately 3000 episodes. My next agent will be trained on 100000 episodes, with epsilon tuning at the 50000 episode mark. Please note that while the environment is seeded for reproducibility, the seeds in my demo are randomly generated. I aim to be consistent and honest about my approach.
+
+<br>
+
+<p align="center">
+  <img align="center" 
+       src="https://github.com/awong0811/flappy-bird-rl/blob/main/imgs/flappy_bird_dqn_3000.gif?raw=true" 
+       width="200"/>
+</p>
+
+[Youtube](https://youtu.be/zXcjuuonosw)
+
+Shoutout to [@Talendar](https://github.com/Talendar) for building the [original environment](https://github.com/Talendar/flappy-bird-gym) and [@markub3327](https://github.com/markub3327) for providing the [updated version](https://github.com/markub3327/flappy-bird-gymnasium). The forked README continues below.
 
 # Flappy Bird for Gymnasium
 
