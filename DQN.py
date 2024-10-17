@@ -85,10 +85,11 @@ class DQN:
             i = 0
             loss = 0
             start_time = time.time()
-            epsilon = self.epsilon_decay()
+            # epsilon = self.epsilon_decay()
 
             while (not done) and (not truncated):
                 # While the game is not over, take an action and add that experience to the replay buffer
+                epsilon = self.epsilon_decay()
                 action = self._sample_action(state, epsilon)
                 next_state, reward, done, truncated, _ = self.env.step(action)
                 self.replay_buffer.add(state, action, reward, next_state, done)
